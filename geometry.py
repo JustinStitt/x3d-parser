@@ -13,13 +13,15 @@ class Point:
     x: float = .0
     y: float = .0
     z: float = .0
+    def __iter__(self):
+        return (x for x in (self.x, self.y, self.z))
 
 
 class Mesh: 
     '''Store rectangular and triangular face data'''
-    def __init__(self, rects, tris):
-        self.rectangular: list[list[Point]] = list(rects) # create a copy just in case
-        self.triangular: list[list[Point]] = list(tris)
+    def __init__(self, tris):
+        # self.rectangular: list[list[Point]] = list(rects) # create a copy just in case
+        self.tris: list[list[Point]] = list(tris)
     
     def __repr__(self):
-        return f'{self.rectangular=}, {self.triangular=}'
+        return f'{self.tris=}'

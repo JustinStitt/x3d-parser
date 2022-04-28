@@ -1,6 +1,8 @@
+import exporter
 import sys
 import xml.etree.ElementTree as ET # turns out x3d is just xml
 from geometry import Transform, Point, Mesh
+
 
 class Object:
     '''Custom Object class to store Scene objects from parsed .x3d files'''
@@ -31,31 +33,27 @@ class Parser:
     def _get_mesh(self, transform_root):
         '''
         Get Mesh Data for Object from Transform
-        Transform -> Transform -> Group -> Shape -> IndexedFaceSet (IFS)
-        * IFS -> Coordinate -> point (vertices)
-        * IFS -> coordIndex (face vertices)
+        Transform -> Transform -> Group -> Shape -> IndexedTriangleSet (ITS)
+        * ITS['index']
+        * ITS -> Coordinate['point']
 
         ** (Not for use outside of Parser internals) **
         '''
-        ifs = transform_root.find('Transform').find('Group').find('Shape').find('IndexedFaceSet')
-        coordIndex = ifs.attrib['coordIndex'].strip().split('-1')
-        face_indices = [[int(y) for y in z] for z in [x.strip().split(' ') for x in coordIndex if len(x)]]
-        raw_points = ifs.find('Coordinate').attrib['point'].strip().split(' ')
+        its = transform_root.find('Transform').find('Group').find('Shape').find('IndexedTriangleSet')
+        triangle_indices = its.attrib['index'].strip().split(' ')
+        raw_points = its.find('Coordinate').attrib['point'].strip().split(' ')
         # take every set of 3 points and parse to geometry.Point
         points = []
         for i in range(0, len(raw_points), 3):
             x, y, z = (raw_points[i], raw_points[i + 1], raw_points[i+2])
             points.append(Point(*[float(i) for i in (x, y, z)]))
-        
-        face_vertices = []
-        for face in face_indices:
-            to_add = [points[x] for x in face]
-            face_vertices.append(to_add)
-        
-        rects = [x for x in face_vertices if len(x) == 4]
-        tris = [x for x in face_vertices if len(x) == 3]
-        mesh = Mesh(rects, tris)
-        print(mesh)
+        tris = []
+        for i in range(0, len(triangle_indices), 3):
+            u, v, w = (triangle_indices[i+0], triangle_indices[i+1], triangle_indices[i+2])
+            to_add = [points[int(x)] for x in (u, v, w)]
+            tris.append(to_add)
+
+        mesh = Mesh(tris=tris)
         return mesh
     
     def fetch_scene(self) -> list[Object]:
@@ -78,3 +76,5 @@ class Parser:
 p = Parser(file_name=sys.argv[1])
 objects = p.fetch_scene()
 # print(objects)
+result = exporter.export_to_QT(objects)
+print(result)
