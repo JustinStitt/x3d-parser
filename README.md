@@ -4,6 +4,7 @@
 
 
 ### Showcase
+![](./media/piccard.png)
 ![](./media/ss2.png)
 ![](./media/ss1.png)
 ![](./media/ss3.png)
