@@ -39,7 +39,12 @@ class Parser:
 
         ** (Not for use outside of Parser internals) **
         '''
-        its = transform_root.find('Transform').find('Group').find('Shape').find('IndexedTriangleSet')
+        its = transform_root.find('Transform')
+        while its.find('Transform'):
+            its = its.find('Transform')
+        # its = transform_root.find('Transform').find('Transform').find('Transform').find('Transform').find('Group').find('Shape').find('IndexedTriangleSet')
+        its = its.find('Group').find('Shape').find('IndexedTriangleSet')
+
         triangle_indices = its.attrib['index'].strip().split(' ')
         raw_points = its.find('Coordinate').attrib['point'].strip().split(' ')
         # take every set of 3 points and parse to geometry.Point
@@ -76,5 +81,14 @@ class Parser:
 p = Parser(file_name=sys.argv[1])
 objects = p.fetch_scene()
 # print(objects)
-result = exporter.export_to_QT(objects)
-print(result)
+# result = ''
+# for _object in objects:
+#     res = exporter.export_to_QT(_object).strip()
+#     result = result + res
+#     result = result.strip()
+# result = result.strip()[:-1] # remove extra whitespace and comma at the end
+
+# print('''vector<mesh> objects = {%s};''' % (result) )
+for _object in objects: # TO-DO: solve multi-mesh exports (cone-and-cube)
+    result = exporter.export_line_based(_object)
+    print(result)
